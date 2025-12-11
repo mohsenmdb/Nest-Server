@@ -6,12 +6,14 @@ import User from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import bcrypt from 'node_modules/bcryptjs';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
 
   constructor(
     private readonly userService: UserService,
+    private readonly jwtService: JwtService
   ) { }
 
 
@@ -25,7 +27,17 @@ export class AuthService {
     return await this.userService.createUser(registerDto);
 
   }
-  login(loginDto: LoginDto) {
-    return 'This action adds a new auth';
+  async login(loginDto: LoginDto) {
+    const user = await this.userService.findOneByEmailWithPassword(loginDto.email);
+    if (!user) {
+      throw new HttpException('User not found', 400);
+    }
+    console.log(`User password: ${user.password}, Login password: ${loginDto.password}`);
+    const isPasswordValid = bcrypt.compareSync(loginDto.password, user.password);
+    if (!isPasswordValid) {
+      throw new HttpException('Invalid password', 400);
+    }
+    const accessToken = this.jwtService.sign({ sub: user.id, email: user.email });
+    return {accessToken: accessToken};
   }
 }
