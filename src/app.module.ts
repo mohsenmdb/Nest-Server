@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { ProductsModule } from './products/products.module';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import User from './entities/user.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     entities: [__dirname + '/**/*.entity{.ts,.js}'],
     synchronize: true,
   }),
+  TypeOrmModule.forFeature([User]),
   ProductsModule,
   UserModule,
 ],
