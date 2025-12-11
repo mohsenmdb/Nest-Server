@@ -8,7 +8,6 @@ export class UserController {
 
   @Get()
   async getAllUsers() {
-    this.userService.createUser();
     return await this.userService.findAll()
   }
 }

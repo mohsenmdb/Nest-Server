@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { ProductsModule } from './products/products.module';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 import User from './entities/user.entity';
 
 @Module({
@@ -22,6 +23,7 @@ import User from './entities/user.entity';
   TypeOrmModule.forFeature([User]),
   ProductsModule,
   UserModule,
+  AuthModule,
 ],
   controllers: [AppController],
   providers: [AppService],
