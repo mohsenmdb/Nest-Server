@@ -6,6 +6,7 @@ import User from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import Codes from 'src/otp/codes.entity';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       secret: 'yourSecretKey', // Use a strong secret key in production
       signOptions: { expiresIn: '1d' }, // If you want your JWT to never expire, you can omit the expiresIn option
     }), 
-    TypeOrmModule.forFeature([User])
+    TypeOrmModule.forFeature([User, Codes])
   ],
   controllers: [AuthController],
   providers: [AuthService, UserService, JwtStrategy],

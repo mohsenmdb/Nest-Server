@@ -1,19 +1,22 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
+import { LoginByOtpDto, LoginDto } from './dto/login.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import User from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import bcrypt from 'node_modules/bcryptjs';
 import { JwtService } from '@nestjs/jwt';
+import Codes from 'src/otp/codes.entity';
 
 @Injectable()
 export class AuthService {
 
   constructor(
+    @InjectRepository(Codes)
+    private readonly codesRepository: Repository<Codes>,
     private readonly userService: UserService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) { }
 
 
@@ -38,6 +41,52 @@ export class AuthService {
       throw new HttpException('Invalid password', 400);
     }
     const accessToken = this.jwtService.sign({ sub: user.id, email: user.email });
-    return {accessToken: accessToken};
+    return { accessToken: accessToken };
+  }
+
+  async loginByOtp(loginDto: LoginByOtpDto) {
+    const user = await this.userService.findOneByEmailWithPassword(loginDto.email);
+    if (!user) {
+      throw new HttpException('User not found', 400);
+    }
+    if (loginDto.code) {
+      const checkOtp = await this.codesRepository.findOne({
+        where: {
+          code: loginDto.code,
+          email: loginDto.email,
+          is_used: false
+        }
+      })
+      if (!checkOtp) {
+        throw new HttpException('Opt is invalid', 400);
+      }
+      this.codesRepository.update(checkOtp, {is_used: true})
+      const accessToken = this.jwtService.sign({ sub: user.id, email: user.email });
+      return { accessToken: accessToken };
+    } else {
+      const otp = await this.generateOtpCode()
+      this.codesRepository.save({ email: loginDto.email, code: otp })
+      //todo send otp by email
+      return { otp: otp };
+    }
+  }
+
+  async generateOtpCode() {
+    let code: number = 0;
+    while (code === 0) {
+      const fiveDigitCode = this.getRandomCode()
+      const checkCode = await this.codesRepository.findOne({ where: { code: fiveDigitCode } })
+      if (!checkCode) {
+        code = fiveDigitCode;
+        break;
+      }
+    }
+    return code
+  }
+
+  getRandomCode() {
+    const min = 10000;
+    const max = 99999;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }
