@@ -2,7 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import User from 'src/entities/user.entity';
+import User from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import bcrypt from 'node_modules/bcryptjs';
